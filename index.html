@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talent</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "Segoe UI", Arial, sans-serif;
+        }
+        /* 全局图片强制自适应，所有图片自动保持原始宽高比 */
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* 页面渐变背景流动动画 */
+        @keyframes flowBg {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* Talent 主标题蓝紫渐变呼吸光效 */
+        @keyframes talentTitleBreath {
+            0% {
+                background-position: 0% 50%;
+                text-shadow:
+                    0 0 10px rgba(56, 189, 248, 0.45),
+                    0 0 22px rgba(56, 189, 248, 0.35),
+                    0 0 40px rgba(168, 85, 247, 0.25),
+                    0 0 70px rgba(168, 85, 247, 0.12);
+            }
+            50% {
+                background-position: 100% 50%;
+                text-shadow:
+                    0 0 18px rgba(56, 189, 248, 0.9),
+                    0 0 40px rgba(56, 189, 248, 0.7),
+                    0 0 70px rgba(168, 85, 247, 0.5),
+                    0 0 110px rgba(168, 85, 247, 0.25);
+            }
+            100% {
+                background-position: 0% 50%;
+                text-shadow:
+                    0 0 10px rgba(56, 189, 248, 0.45),
+                    0 0 22px rgba(56, 189, 248, 0.35),
+                    0 0 40px rgba(168, 85, 247, 0.25),
+                    0 0 70px rgba(168, 85, 247, 0.12);
+            }
+        }
+
+        /* 泡泡明暗呼吸动画 */
+        @keyframes bubbleBreath {
+            0%, 100% {
+                opacity: 0.48;
+                filter: brightness(0.88);
+                box-shadow:
+                    inset 0 0 18px rgba(0, 240, 255, 0.28),
+                    inset 0 0 38px rgba(138, 43, 226, 0.14),
+                    0 0 20px rgba(0, 240, 255, 0.18);
+            }
+            50% {
+                opacity: 0.72;
+                filter: brightness(1.04);
+                box-shadow:
+                    inset 0 0 28px rgba(0, 240, 255, 0.48),
+                    inset 0 0 58px rgba(138, 43, 226, 0.28),
+                    0 0 34px rgba(0, 240, 255, 0.34);
+            }
+        }
+
+        /* 泡泡上下漂浮 */
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+
+        /* 泡泡水平缓慢滚动 */
+        @keyframes bubbleSlide {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(18px); }
+            100% { transform: translateX(0); }
+        }
+
+        body {
+            min-height: 100vh;
+            color: #fff;
+            background: linear-gradient(-45deg, #05070d, #07121a, #0a1a2a, #120a22);
+            background-size: 400% 400%;
+            animation: flowBg 16s ease infinite;
+            background-attachment: fixed;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 全局底层泡泡容器 */
+        .global-bubbles {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        /* 泡泡通用玻璃样式 */
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(0, 240, 255, 0.42);
+            background:
+                radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.52), rgba(0, 240, 255, 0.16) 28%, rgba(138, 43, 226, 0.1) 55%, rgba(10, 18, 28, 0.42) 72%);
+            box-shadow:
+                inset 0 0 20px rgba(0, 240, 255, 0.32),
+                inset 0 0 42px rgba(138, 43, 226, 0.16),
+                0 0 22px rgba(0, 240, 255, 0.22);
+            animation:
+                bubbleBreath 6s ease-in-out infinite,
+                floatSlow 7.5s ease-in-out infinite,
+                bubbleSlide 12s ease-in-out infinite;
+        }
+
+        .bubble::before {
+            content: "";
+            position: absolute;
+            top: 14%;
+            left: 18%;
+            width: 28%;
+            height: 18%;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.68);
+            filter: blur(4px);
+        }
+
+        /* 各个泡泡定位 */
+        .b-big1 {
+            width: 280px;
+            height: 280px;
+            right: -70px;
+            top: 30px;
+            animation-delay: 0s, 0s, 1s;
+        }
+        .b-big2 {
+            width: 160px;
+            height: 160px;
+            right: 120px;
+            top: 180px;
+            animation-delay: 1.2s, 0.8s, 2.2s;
+        }
+        .b-small1 {
+            width: 110px;
+            height: 110px;
+            left: 50px;
+            top: 240px;
+            animation-delay: 2.4s, 1.6s, 3.4s;
+        }
+        .m-left1 {
+            width: 130px;
+            height: 130px;
+            left: -50px;
+            top: 520px;
+            animation-delay: 0.6s, 0.4s, 0.6s;
+        }
+        .m-right1 {
+            width: 100px;
+            height: 100px;
+            right: -40px;
+            top: 680px;
+            animation-delay: 1.9s, 1.2s, 1.8s;
+        }
+        .m-left2 {
+            width: 110px;
+            height: 110px;
+            left: -35px;
+            top: 950px;
+            animation-delay: 3.1s, 2.0s, 3.0s;
+        }
+        .m-right2 {
+            width: 80px;
+            height: 80px;
+            right: -25px;
+            top: 1180px;
+            animation-delay: 4.3s, 2.8s, 4.2s;
+        }
+        .mid-center1 {
+            width: 140px;
+            height: 140px;
+            left: -60px;
+            top: 780px;
+            animation-delay: 0.8s, 0.6s, 1.0s;
+        }
+        .mid-center2 {
+            width: 90px;
+            height: 90px;
+            right: -35px;
+            top: 860px;
+            animation-delay: 2.1s, 1.4s, 2.4s;
+        }
+        .mid-center3 {
+            width: 100px;
+            height: 100px;
+            left: -40px;
+            top: 1080px;
+            animation-delay: 3.3s, 2.2s, 3.6s;
+        }
+        .mid-center4 {
+            width: 75px;
+            height: 75px;
+            right: -28px;
+            top: 1260px;
+            animation-delay: 4.5s, 3.0s, 4.8s;
+        }
+        .bot-bubble1 {
+            width: 95px;
+            height: 95px;
+            left: 80px;
+            bottom: 120px;
+            animation-delay: 5s, 3.5s, 5.5s;
+        }
+        .bot-bubble2 {
+            width: 120px;
+            height: 120px;
+            right: -45px;
+            bottom: 200px;
+            animation-delay: 1.5s, 2.2s, 2.8s;
+        }
+
+        /* 页面内容层级高于泡泡 */
+        header, .banner, .container, footer {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* 顶部导航栏（无导航链接，仅logo+标题+下载按钮） */
+        header {
+            width: 100%;
+            height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 48px;
+            background: linear-gradient(180deg, rgba(14, 22, 38, 0.92), rgba(10, 18, 30, 0.88));
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(0, 240, 255, 0.12);
+            box-shadow:
+                0 10px 30px rgba(0, 0, 0, 0.35),
+                0 0 25px rgba(0, 240, 255, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-shrink: 0;
+        }
+
+        .logo-img {
+            height: 44px;
+            width: 44px;
+            border-radius: 14px;
+            padding: 6px;
+            background: rgba(0, 240, 255, 0.08);
+            border: 1px solid rgba(0, 240, 255, 0.25);
+            box-shadow:
+                0 0 18px rgba(0, 240, 255, 0.25),
+                inset 0 0 12px rgba(0, 240, 255, 0.12);
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, #38bdf8, #a855f7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 18px rgba(0, 240, 255, 0.35);
+        }
+
+        /* 导航区域完全隐藏 */
+        nav {
+            display: none;
+        }
+
+        /* 顶部右侧下载按钮 */
+        .header-download {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #38bdf8 0%, #6366f1 50%, #a855f7 100%);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            text-decoration: none;
+            box-shadow:
+                0 10px 25px rgba(56, 189, 248, 0.45),
+                0 0 20px rgba(168, 85, 247, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.35);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .header-download:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 14px 30px rgba(56, 189, 248, 0.55),
+                0 0 28px rgba(168, 85, 247, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+
+        .header-download svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Banner头部横幅区域 */
+        .banner {
+            height: 460px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0 80px;
+            border-bottom: none;
+        }
+
+        .banner h1 {
+            font-size: 48px;
+            margin-bottom: 16px;
+            font-weight: 900;
+            letter-spacing: 3px;
+            line-height: 1.3;
+            background: linear-gradient(90deg, #38bdf8, #a855f7, #38bdf8);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: talentTitleBreath 4.5s ease-in-out infinite;
+        }
+
+        .banner p {
+            font-size: 20px;
+            font-weight: 600;
+            opacity: 0.9;
+            max-width: 700px;
+            margin-bottom: 32px;
+            color: #cde7ff;
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.25);
+        }
+
+        /* 按钮组 */
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        /* 主下载按钮 */
+        .btn-primary {
+            width: 100%;
+            padding: 16px 22px;
+            border: none;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #38bdf8 0%, #6366f1 50%, #a855f7 100%);
+            color: #fff;
+            font-size: 18px;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow:
+                0 10px 25px rgba(56, 189, 248, 0.45),
+                0 0 20px rgba(168, 85, 247, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.35);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 14px 30px rgba(56, 189, 248, 0.55),
+                0 0 28px rgba(168, 85, 247, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+
+        /* 购卡副按钮 */
+        .btn-secondary {
+            width: 100%;
+            padding: 14px 22px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            color: #fff;
+            font-size: 17px;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.18),
+                0 8px 20px rgba(0, 0, 0, 0.35);
+            transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            border-color: rgba(168, 85, 247, 0.6);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.22),
+                0 12px 24px rgba(168, 85, 247, 0.25);
+        }
+
+        .btn-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* 内容容器 */
+        .container {
+            max-width: 900px;
+            margin: 70px auto;
+            padding: 0 20px;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 40px;
+            color: #00f0ff;
+            text-shadow: 0 0 8px rgba(0, 240, 255, 0.35);
+        }
+
+        /* 正文卡片容器（无背景透明） */
+        .long-card {
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            border-radius: 0;
+            overflow: visible;
+            width: 100%;
+        }
+
+        /* 顶部大图 自适应比例 */
+        .top-big-img {
+            width: 100%;
+            max-width: 860px;
+            height: auto;
+            margin: 0 auto 40px;
+            display: block;
+            border-radius: 18px;
+            box-shadow:
+                0 10px 30px rgba(0, 0, 0, 0.35),
+                0 0 20px rgba(0, 240, 255, 0.1);
+        }
+
+        .content-wrap {
+            padding: 0;
+            background: transparent;
+            backdrop-filter: none;
+        }
+
+        .content-wrap h3 {
+            margin-bottom: 24px;
+            font-size: 26px;
+            font-weight: 700;
+            color: #00f0ff;
+            text-shadow: 0 0 8px rgba(0, 240, 255, 0.35);
+        }
+
+        .content-wrap h4 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #a8e6ff;
+            margin: 32px 0 14px;
+            border-left: none;
+            padding-left: 0;
+            text-shadow: 0 0 6px rgba(0, 240, 255, 0.3);
+        }
+
+        .content-wrap p {
+            color: #b9d5e6;
+            line-height: 2;
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 18px;
+            text-shadow: 0 0 6px rgba(0, 0, 0, 0.35);
+        }
+
+        /* 正文插入图片 自适应比例核心样式 */
+        .mid-img {
+            width: 100%;
+            max-width: 860px;
+            height: auto;
+            margin: 22px auto;
+            object-fit: contain;
+            border-radius: 14px;
+            display: block;
+            box-shadow:
+                0 8px 24px rgba(0, 0, 0, 0.35),
+                0 0 18px rgba(0, 240, 255, 0.12);
+        }
+
+        footer {
+            background: rgba(10, 18, 28, 0.5);
+            color: #7f95a8;
+            text-align: center;
+            padding: 30px;
+            margin-top: 80px;
+            border-top: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- 底层流动泡泡 -->
+    <div class="global-bubbles" aria-hidden="true">
+        <div class="bubble b-big1"></div>
+        <div class="bubble b-big2"></div>
+        <div class="bubble b-small1"></div>
+        <div class="bubble m-left1"></div>
+        <div class="bubble m-right1"></div>
+        <div class="bubble m-left2"></div>
+        <div class="bubble m-right2"></div>
+        <div class="bubble mid-center1"></div>
+        <div class="bubble mid-center2"></div>
+        <div class="bubble mid-center3"></div>
+        <div class="bubble mid-center4"></div>
+        <div class="bubble bot-bubble1"></div>
+        <div class="bubble bot-bubble2"></div>
+    </div>
+
+    <!-- 顶部导航栏 -->
+    <header>
+        <div class="header-left">
+            <img src="logo.png" alt="Talent Logo" class="logo-img">
+            <span class="header-title">Talent</span>
+        </div>
+        <nav></nav>
+        <a href="Talent v3.exe" download="Talent v3.exe" class="header-download">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            立即下载
+        </a>
+    </header>
+
+<div class="banner">
+    <h1>Talent 专业工具</h1>
+    <p>简单好用，高效稳定</p>
+
+    <div class="btn-group">
+        <a href="Talent v3.exe" download="Talent v3.exe" class="btn-primary">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            免费下载
+        </a>
+        <a href="https://kw.ovim.cn/shop/Talent" target="_blank" rel="noopener noreferrer" class="btn-secondary">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <path d="M16 10a4 4 0 0 1-8 0"></path>
+            </svg>
+            进入店铺购买
+        </a>
+    </div>
+</div>
+
+<div class="container" id="intro">
+    <h2 class="title">软件完整功能介绍</h2>
+    <div class="long-card">
+        <!-- 顶部大图自适应 -->
+        <img src="main.png" alt="软件整体界面" class="top-big-img">
+        <div class="content-wrap">
+            <h3>Talent V3 功能说明</h3>
+
+            <p>Talent是一款专业辅助工具，采用独家过检测，稳定不弹窗封号。</p>
+            
+
+            <h4>一、AI功能介绍</h4>
+            <!-- 正文插图自适应示例 -->
+            <img src="img1.png" alt="主界面截图" class="mid-img">
+            <p>包围盒预测锁球，做到毫秒级起球。</p>
+            <p>单端追踪，无缝衔接。</p>
+
+            <h4>二、TCP追踪</h4>
+            <img src="img2.png" alt="批量功能面板" class="mid-img">
+            <p>单分、四分、倒退、测射一键完成</p>
+            
+            <h4>三、美化功能</h4>
+            <img src="img3.png" alt="导出设置界面" class="mid-img">
+            <p>内置美化箭头、孢子、关键词、音效包等多种美化。</p>
+            <p>注：除美化箭头需重进游戏外，其余美化均点击应用即可一键使用。</p>
+
+            <h4>四、长期更新与售后保障</h4>
+            <p>我们尽可能的为大家做到出错秒更新，让大家有更好的游戏体验。</p>
+            <p>使用中出现报错、操作疑问均可随时咨询，完善售后不跑路。</p>
+        </div>
+    </div>
+</div>
+
+<div class="container" id="download">
+    <h2 class="title">下载区域</h2>
+    <div style="text-align:center;">
+        <p style="margin-bottom:20px;font-size:18px;font-weight:700;color:#d0d8e3;">最新版本：V3</p>
+
+        <div style="display:flex;flex-direction:column;align-items:center;gap:16px;">
+            <a href="Talent v3.exe" download="Talent v3.exe" class="btn-primary" style="max-width:320px;">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                免费下载
+            </a>
+            <a href="https://kw.ovim.cn/shop/Talent" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="max-width:320px;">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+                进入店铺购买
+            </a>
+        </div>
+
+        <p style="margin-top:15px;color:#ff9494;font-size:14px;font-weight:600;">提示：部分浏览器会拦截exe文件，选择保留文件即可正常安装</p>
+    </div>
+</div>
+
+<div class="container" id="contact">
+    <h2 class="title">联系我们</h2>
+    <p style="font-size:17px;line-height:2;color:#b0c4de;text-align:center;font-weight:600;">
+        邮箱：demo@shturl.<br>
+        微信：xxxxxxx
+    </p>
+</div>
+
+<footer>
+    ©2026 Talent 版权所有
+</footer>
+</body>
+</html>
