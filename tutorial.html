@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" href="favicon.png">
+<title>使用教程 — Talent 控制台</title>
+<meta name="description" content="Talent 控制台完整使用教程：快速入门、内存功能、AI 锁球、TCP 追踪、ADB 美化、自动合球与常见问题。">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #1a0f13;
+    --bg-2: #24161c;
+    --panel: rgba(58,28,36,.55);
+    --panel-solid: #3a1c24;
+    --panel-soft: rgba(80,38,50,.45);
+    --border: rgba(255,120,140,.14);
+    --border-strong: rgba(255,120,140,.28);
+    --text: #f4ecee;
+    --text-dim: #c9aeb4;
+    --text-mute: #8d6a72;
+    --accent: #ff5a6e;
+    --accent-2: #ff8a5c;
+    --accent-soft: rgba(255,90,110,.18);
+    --ok: #4ade80;
+    --radius: 18px;
+    --radius-sm: 12px;
+  }
+  html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+  body {
+    font-family: "Segoe UI", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+    background:
+      radial-gradient(1200px 700px at 15% -10%, #4a1f2e 0%, var(--bg) 55%) fixed,
+      var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.7;
+    position: relative;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(500px 500px at 85% 15%, rgba(255,138,92,.10), transparent 60%),
+      radial-gradient(450px 450px at 30% 85%, rgba(255,90,110,.08), transparent 60%);
+  }
+  body > * { position: relative; z-index: 1; }
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,120,140,.25); border-radius: 5px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,120,140,.4); }
+  ::selection { background: var(--accent); color: #fff; }
+  a { color: inherit; text-decoration: none; }
+
+  /* ===== 导航栏 ===== */
+  .navbar {
+    position: sticky; top: 0; z-index: 100;
+    backdrop-filter: blur(18px);
+    background: rgba(26,15,19,.75);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner {
+    max-width: 1280px; margin: 0 auto;
+    height: 64px; padding: 0 24px;
+    display: flex; align-items: center; gap: 18px;
+  }
+  .logo { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 19px; }
+  .logo-mark {
+    width: 38px; height: 38px; border-radius: 11px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 19px;
+    box-shadow: 0 4px 14px rgba(255,90,110,.4);
+  }
+  .logo span { color: var(--accent); }
+  .nav-actions { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+
+  .btn {
+    height: 40px; padding: 0 20px;
+    border-radius: 10px; border: 1px solid var(--border);
+    background: var(--panel-soft); color: var(--text);
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: .18s; display: inline-flex; align-items: center; gap: 8px;
+    white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    border: none; color: #fff;
+    box-shadow: 0 6px 18px rgba(255,90,110,.35);
+  }
+  .btn.primary:hover { filter: brightness(1.12); color: #fff; }
+  .btn.ghost { background: transparent; border-color: var(--border-strong); }
+
+  /* ===== 布局 ===== */
+  .layout {
+    max-width: 1280px; margin: 0 auto;
+    display: grid; grid-template-columns: 260px 1fr;
+    gap: 32px; padding: 32px 24px 60px;
+  }
+
+  /* ===== 侧边栏 ===== */
+  .sidebar {
+    position: sticky; top: 88px; align-self: start;
+    max-height: calc(100vh - 108px); overflow-y: auto;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 14px;
+    backdrop-filter: blur(16px);
+  }
+  .sidebar h4 {
+    font-size: 11px; color: var(--text-mute); font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 0 10px 12px; margin-bottom: 4px;
+  }
+  .side-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 9px;
+    color: var(--text-dim); font-size: 13.5px; font-weight: 500;
+    cursor: pointer; transition: .15s;
+  }
+  .side-item:hover { background: var(--panel-soft); color: var(--text); }
+  .side-item.active {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+  }
+  .side-item .idx {
+    width: 22px; height: 22px; border-radius: 6px;
+    background: var(--panel-solid); display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; flex-shrink: 0;
+  }
+  .side-item.active .idx { background: rgba(255,255,255,.25); color: #fff; }
+
+  .progress-box {
+    margin-top: 16px; padding: 14px;
+    background: var(--panel-soft);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .progress-box .p-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-dim); margin-bottom: 8px; }
+  .progress-bar { height: 6px; background: var(--panel-solid); border-radius: 3px; overflow: hidden; }
+  .progress-bar .fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    border-radius: 3px; transition: width .3s;
+  }
+  .progress-box .reset {
+    display: block; margin-top: 10px; text-align: center;
+    font-size: 11.5px; color: var(--text-mute); cursor: pointer;
+  }
+  .progress-box .reset:hover { color: var(--accent); }
+
+  /* ===== 主内容 ===== */
+  .content { min-width: 0; }
+  .page-head { margin-bottom: 36px; }
+  .page-head .tag {
+    display: inline-block; color: var(--accent); font-size: 13px;
+    font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .page-head h1 { font-size: 38px; font-weight: 800; line-height: 1.2; margin-bottom: 12px; }
+  .page-head h1 .grad {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .page-head p { color: var(--text-dim); font-size: 16px; max-width: 640px; }
+
+  .tut-section { margin-bottom: 56px; scroll-margin-top: 84px; }
+  .tut-section > h2 {
+    font-size: 26px; font-weight: 800; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .tut-section > h2 .sec-ico {
+    width: 40px; height: 40px; border-radius: 11px;
+    background: linear-gradient(135deg, var(--accent-soft), rgba(255,138,92,.12));
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+  }
+  .tut-section > .desc { color: var(--text-dim); margin-bottom: 22px; padding-left: 52px; }
+
+  .step {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+    margin-bottom: 14px;
+    backdrop-filter: blur(16px);
+    transition: border-color .2s;
+  }
+  .step:hover { border-color: var(--border-strong); }
+  .step-head {
+    display: flex; align-items: flex-start; gap: 14px;
+  }
+  .step-num {
+    width: 30px; height: 30px; border-radius: 9px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff; font-weight: 800; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; box-shadow: 0 4px 10px rgba(255,90,110,.3);
+  }
+  .step-body { flex: 1; }
+  .step-body h3 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+  .step-body p { color: var(--text-dim); font-size: 14px; }
+  .step-body .tip {
+    margin-top: 12px; padding: 10px 14px;
+    background: var(--panel-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    font-size: 13px; color: var(--text-dim);
+  }
+  .step-body .tip b { color: var(--accent); }
+
+  kbd {
+    background: var(--panel-solid);
+    border: 1px solid var(--border-strong);
+    color: var(--text);
+    padding: 2px 10px; border-radius: 6px;
+    font-size: 12px; font-weight: 600; font-family: inherit;
+    box-shadow: 0 2px 0 rgba(0,0,0,.2);
+  }
+
+  .check-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--border);
+  }
+  .check-row input[type=checkbox] {
+    appearance: none; -webkit-appearance: none;
+    width: 20px; height: 20px; border-radius: 6px;
+    border: 2px solid var(--border-strong);
+    background: var(--panel-solid);
+    cursor: pointer; position: relative; flex-shrink: 0;
+    transition: .15s;
+  }
+  .check-row input[type=checkbox]:checked {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    border-color: var(--accent);
+  }
+  .check-row input[type=checkbox]:checked::after {
+    content: "✓"; position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 13px; font-weight: 800;
+  }
+  .check-row label { color: var(--text-dim); font-size: 13px; cursor: pointer; }
+
+  .cta-block {
+    margin-top: 40px; padding: 28px;
+    background: linear-gradient(120deg, rgba(74,26,38,.6), rgba(192,57,43,.35));
+    border: 1px solid var(--border-strong);
+    border-radius: 18px;
+    text-align: center;
+  }
+  .cta-block h3 { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+  .cta-block p { color: var(--text-dim); margin-bottom: 18px; font-size: 14px; }
+
+  /* ===== FAQ ===== */
+  .faq-item {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: border-color .2s;
+  }
+  .faq-item:hover { border-color: var(--border-strong); }
+  .faq-q {
+    padding: 18px 22px; cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between;
+    font-weight: 600; font-size: 15px;
+  }
+  .faq-q .chev { transition: transform .2s; color: var(--accent); }
+  .faq-item.open .faq-q .chev { transform: rotate(45deg); }
+  .faq-a {
+    max-height: 0; overflow: hidden;
+    transition: max-height .3s ease;
+    padding: 0 22px;
+    color: var(--text-dim); font-size: 14px;
+  }
+  .faq-item.open .faq-a { max-height: 300px; padding-bottom: 18px; }
+
+  footer {
+    padding: 36px 0; border-top: 1px solid var(--border);
+    text-align: center; color: var(--text-mute); font-size: 13px;
+  }
+  footer .f-links { display: flex; gap: 24px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap; }
+  footer .f-links a:hover { color: var(--accent); }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { position: static; max-height: none; }
+    .page-head h1 { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 导航 -->
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="index.html" class="logo">
+      <div class="logo-mark">T</div>
+      <div>Talent<span>.</span> 使用教程</div>
+    </a>
+    <div class="nav-actions">
+      <a href="index.html" class="btn ghost">← 返回首页</a>
+      <a href="https://kw.ovim.cn/shop/Talent" target="_blank" rel="noopener" class="btn primary">立即购卡</a>
+    </div>
+  </div>
+</nav>
+
+<div class="layout">
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <h4>教程目录</h4>
+    <a href="#sec-start" class="side-item active"><span class="idx">1</span>快速入门</a>
+    <a href="#sec-memory" class="side-item"><span class="idx">2</span>内存功能</a>
+    <a href="#sec-ai" class="side-item"><span class="idx">3</span>AI 功能</a>
+    <a href="#sec-tcp" class="side-item"><span class="idx">4</span>TCP 追踪</a>
+    <a href="#sec-adb" class="side-item"><span class="idx">5</span>ADB 美化</a>
+    <a href="#sec-auto" class="side-item"><span class="idx">6</span>自动合球</a>
+    <a href="#sec-faq" class="side-item"><span class="idx">7</span>常见问题</a>
+
+    <div class="progress-box">
+      <div class="p-label"><span>学习进度</span><span id="progText">0%</span></div>
+      <div class="progress-bar"><div class="fill" id="progFill"></div></div>
+      <div class="reset" id="resetProg">重置进度</div>
+    </div>
+  </aside>
+
+  <!-- 主内容 -->
+  <main class="content">
+    <div class="page-head">
+      <div class="tag">TUTORIAL</div>
+      <h1>Talent 控制台<br><span class="grad">完整使用教程</span></h1>
+      <p>从下载安装到熟练运用五大核心模块，跟随本教程逐步上手。勾选步骤可记录学习进度，数据保存在本地浏览器。</p>
+    </div>
+
+    <!-- 1. 快速入门 -->
+    <section class="tut-section" id="sec-start">
+      <h2><span class="sec-ico">🚀</span>快速入门</h2>
+      <p class="desc">完成环境准备、登录卡密与初始化，即可开始使用全部功能。</p>
+
+      <div class="step">
+        <div class="step-head">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h3>安装安卓模拟器</h3>
+            <p>Talent 目前仅支持 <b>MuMu 模拟器</b>。请在电脑上安装 MuMu 模拟器，并确保已开启 <b>ADB 调试</b>。</p>
+            <div class="tip"><b>提示：</b>推荐使用 MuMu 模拟器 12 版本，偏移量已针对该版本深度适配，稳定性最佳。</div>
+            <div class="check-row"><input type="checkbox" id="c1"><label for="c1">我已安装模拟器并开启 ADB 调试</label></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-head">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h3>启动游戏并登录账号</h3>
+            <p>在模拟器中打开球球大作战，进入游戏主界面后再启动 Talent 控制台，避免内存特征码扫描失败。</p>
+            <div class="tip"><b>提示：</b>请使用球球 <b>19.7.2</b> 版本。</div>
+            <div class="check-row"><input type="checkbox" id="c2"><label for="c2">游戏已进入主界面</label></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-head">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h3>登录卡密</h3>
+            <p>打开 Talent 控制台，在登录界面输入您购买的卡密。如未购买，可点击右上角「立即购卡」前往授权页面。</p>
+            <div class="tip"><b>提示：</b>卡密区分大小写，请完整复制粘贴，不要多余空格。</div>
+            <div class="check-row"><input type="checkbox" id="c3"><label for="c3">卡密登录成功</label></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-head">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <h3>启动游戏并初始化</h3>
+            <p>点击 <b>「过检测」</b>，等待自动启动游戏后，进入 <b>技战室</b>，点击 <b>「初始化」</b> 等待几秒即可使用。</p>
+            <div class="tip"><b>提示：</b>若初始化失败，请确认模拟器已开启 ADB 且游戏已运行，然后重新点击过检测。</div>
+            <div class="check-row"><input type="checkbox" id="c4"><label for="c4">初始化成功，功能可用</label></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. 内存功能 -->
+    <section class="tut-section" id="sec-memory">
+      <h2><span class="sec-ico">⚙️</span>内存功能</h2>
+      <p class="desc">实时读写游戏内存，调整视野、摇杆、倍率等核心参数。</p>
+
+      <div class="step">
+        <div class="step-head">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h3>调整视野范围</h3>
+            <p>设置视野范围数值（推荐 5）。可使用「滚轮改视野」功能，通过鼠标滚轮快速缩放视野，步长推荐 0.5。</p>
+            <div class="tip"><b>推荐：</b>视野修改值设为 <kbd>2.5</kbd>，视野范围 <kbd>1</kbd> ~ <kbd>4</kbd>，兼顾视野与帧率。</div>
+            <div class="check-row"><input type="checkbox" id="c5"><label for="c1">视野调整正常生效</label></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-head">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h3>配置摇杆参数</h3>
+            <p>开启「21亿摇杆」与「超级摇杆」可解锁摇杆上限。调节「摇杆回弹」（推荐 10）、「容差」（推荐 0）、「摇杆加速」（推荐 0.001）来优化手感。</p>
+            <div class="check-row"><input type="checkbox" id="c6"><label for="c6">摇杆参数已按需配置</label></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-head">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h3>全局加速与其他</h3>
+            <p>「全局加速」数值控制游戏整体速度倍率（推荐 1），开启「持续加速」可保持效果。「球体粘合」「名字大小」「局内去皮」等参数可按个人习惯调整。</p>
+            <div class="tip"><b>注意：</b>加速值过高可能导致掉帧、卡顿，建议不超过 <kbd>1.5</kbd>。</div>
+            <div class="check-row"><input type="checkbox" id="c7"><label for="c7">加速与其他参数已测试</label></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. AI 功能 -->
+    <section class="tut-section" id="sec-ai">
+      <h2><span class="sec-ico">🤖</span>AI 功能</h2>
+      <p class="desc">基于包围盒预测算法，自动获取排名并锁定目标球。</p>
+
+      <div class="step">
+        <div class="step-head">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h3>获取排名</h3>
+            <p>设置「目标排名」数值，选择「取球键」，获取方式可选「游标 / 鼠标 / 箭头」。开启「自动获取」后可自动锁定目标。</p>
+            <div class="check-row"><input type="checkbox" id="c8"><label for="c8">取排名功能正常</label></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-head">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h3>锁球（包围盒预测）</h3>
+            <p>算法选择「包围盒预测」，设置「自身包围盒预测」（推荐 140）、「基础预测」（推荐 20）、「目标体外预测」（推荐 470）。按下「锁球键」即可锁定目标并自动吐球。</p>
+            <div class="tip"><b>调优：</b>若锁球不准，可适当增大「目标体外预测」值；若出现过度追踪，减小该值。</div>
+            <div class="check-row"><input type="checkbox" id="c9"><label for="c9">锁球功能已测试生效</label></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-head">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h3>普通追踪与三角追踪</h3>
+            <p>「普通追踪」可设置「分身次数」与「分身间隔」。「三角追踪」在半径变化后执行三角合球，需配置「两侧张开角度」（推荐 170）与各次分身间隔。</p>
+            <div class="check-row"><input type="checkbox" id="c10"><label for="c10">追踪功能配置完成</label></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. TCP 追踪 -->
+    <section class="tut-section" id="sec-tcp">
+      <h2><span class="sec-ico">📡</span>TCP 追踪</h2>
+      <p class="desc">监控并解析游戏网络流量，实现大炮、四分炮等高级指令与双端协同。</p>
+
+      <div class="step">
+        <div class="step-head">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h3>连接中继服务器</h3>
+            <p>设置「端口」（默认 1234），点击连接。若需双端协同，在「绑定码」输入对方的绑定码并点击「绑定」，即可实现远程受控。受控时长推荐 300ms。</p>
+            <div class="tip"><b>注意：</b>服务器连接失败不影响单设备功能，仅双端协同不可用。</div>
+            <div class="check-row"><input type="checkbox" id="c11"><label for="c11">TCP 服务器已连接</label></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-head">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h3>大炮与四分炮</h3>
+            <p>「大炮键」推荐 <kbd>Esc</kbd>，设置「分身次数」（推荐 30）、「间隔」（推荐 10ms）、「冲球延迟」（推荐 40ms）。四分炮配置类似，按需调整参数即可。</p>
+            <div class="check-row"><input type="checkbox" id="c12"><label for="c12">大炮指令已测试</label></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-head">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h3>倒推与溅射</h3>
+            <p>「倒推大炮」「倒推四分」设置触发键与延迟（推荐 50ms）。「TCP 溅射」需配置写摇杆延时、分身间隔、分身后延时、AI 调整延时，实现连续溅射操作。</p>
+            <div class="check-row"><input type="checkbox" id="c13"><label for="c13">倒推与溅射功能已了解</label></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. ADB 美化 -->
+    <section class="tut-section" id="sec-adb">
+      <h2><span class="sec-ico">🎨</span>ADB 美化</h2>
+      <p class="desc">通过 ADB 调试桥替换游戏内资源，自定义皮肤与界面。</p>
+
+      <div class="step">
+        <div class="step-head">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h3>文件去皮</h3>
+            <p>点击「去商城皮」可移除游戏商城皮肤，「恢复商城皮」还原。同理可「去活动」与「恢复活动」，精简游戏界面。</p>
+            <div class="check-row"><input type="checkbox" id="c14"><label for="c14">文件去皮功能正常</label></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-head">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h3>关键词 ID 美化</h3>
+            <p>在「关键词 ID」输入框中填入皮肤 ID（填 <kbd>9999</kbd> 可去除其他玩家皮肤），点击「应用」生效。开启「保留自身去皮」可保留自身皮肤。</p>
+            <div class="check-row"><input type="checkbox" id="c15"><label for="c15">关键词替换已测试</label></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-head">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h3>美化资源库</h3>
+            <p>左侧选择分类（箭头 / 刺球 / 孢子 / 关键词 / 音效 / 吞噬音效 / 昵称 / 去雾 / 造型），右侧点击对应样式的「应用」按钮即可下载部署到游戏中。</p>
+            <div class="tip"><b>注意：</b>美化箭头后需重启游戏才能生效。</div>
+            <div class="check-row"><input type="checkbox" id="c16"><label for="c16">资源库美化已尝试应用</label></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. 自动合球 -->
+    <section class="tut-section" id="sec-auto">
+      <h2><span class="sec-ico">🎯</span>自动合球</h2>
+      <p class="desc">配置合球延迟、角度与幅度，实现一键自动合球。</p>
+
+      <div class="step">
+        <div class="step-head">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <h3>选择合球种类</h3>
+            <p>在「合球种类」选项卡中选择目标方式：三角 / 原地 / 四分侧合 / 半旋 / 旋转 / 蛇手。每种方式有独立的参数配置。</p>
+            <div class="check-row"><input type="checkbox" id="c17"><label for="c17">已选择目标合球种类</label></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-head">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <h3>配置角度与幅度</h3>
+            <p>设置「角度」（160）与「幅度」（100）。可按需开启「箭头」「坐标」「吐球」「垂直」等辅助选项，并绑定合球触发键。</p>
+            <div class="tip"><b>提示：</b>首次使用建议使用上述参数，熟悉后再微调。</div>
+            <div class="check-row"><input type="checkbox" id="c18"><label for="c18">角度与幅度已配置</label></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-head">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <h3>调整延迟参数</h3>
+            <p>在「延迟参数」中设置每次拖动鼠标与分身的间隔（推荐拖动 50ms、分身 10ms、最后分身延迟 20ms）。按绑定的合球键即可触发自动合球。</p>
+            <div class="check-row"><input type="checkbox" id="c19"><label for="c19">合球功能已成功触发</label></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. FAQ -->
+    <section class="tut-section" id="sec-faq">
+      <h2><span class="sec-ico">❓</span>常见问题</h2>
+      <p class="desc">使用过程中遇到问题可先查阅以下解答。</p>
+
+      <div class="faq-item">
+        <div class="faq-q">初始化失败怎么办？<span class="chev">+</span></div>
+        <div class="faq-a"><p>1. 确认模拟器已开启 ADB 调试；2. 确认球球大作战已进入游戏主界面；3. 重新点击「初始化」按钮；4. 若仍失败，重启 MuMu 模拟器后重试。</p></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">卡密验证失败？<span class="chev">+</span></div>
+        <div class="faq-a"><p>卡密区分大小写，请完整复制。若提示已过期或被绑定，请联系购卡页面客服处理，注意一卡一设备绑定规则。</p></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">内存功能修改后不生效？<span class="chev">+</span></div>
+        <div class="faq-a"><p>请确认初始化状态为成功。游戏版本更新可能导致特征码失效，关注官方公告获取最新版本，更新控制台后重新初始化即可。</p></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">AI 锁球不准如何调优？<span class="chev">+</span></div>
+        <div class="faq-a"><p>增大「目标体外预测」可让锁球更激进，减小则更保守；「基础预测」影响提前量，「自身包围盒预测」影响自身预判。建议小幅调整并实战测试。</p></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">TCP 连接不上服务器？<span class="chev">+</span></div>
+        <div class="faq-a"><p>中继服务器偶尔不可达属正常现象，仅影响双端协同功能，单设备操作不受影响。可稍后重试，或检查网络防火墙是否拦截。</p></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">美化资源应用后没变化？<span class="chev">+</span></div>
+        <div class="faq-a"><p>确保 ADB 连接正常，部分美化需要重启游戏后生效。若关键词替换无效，确认填入的 ID 正确（其他玩家填 9999 去皮）。</p></div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <div class="cta-block">
+      <h3>还没有 Talent 授权？</h3>
+      <p>立即购卡，解锁全部功能，享受持续更新与官方技术支持。</p>
+      <a href="https://kw.ovim.cn/shop/Talent" target="_blank" rel="noopener" class="btn primary">🛒 前往购卡</a>
+    </div>
+  </main>
+</div>
+
+<footer>
+  <div class="container">
+    <div class="f-links">
+      <a href="index.html">返回首页</a>
+      <a href="#sec-start">快速入门</a>
+      <a href="#sec-faq">常见问题</a>
+      <a href="https://kw.ovim.cn/shop/Talent" target="_blank" rel="noopener">购买授权</a>
+    </div>
+    <div>Talent Console · v2.1 · Build 20261006</div>
+    <div style="margin-top:6px;">© 2026 Talent. 仅供学习交流使用。</div>
+  </div>
+</footer>
+
+<script>
+  // FAQ 折叠
+  document.querySelectorAll('.faq-item').forEach(item => {
+    item.querySelector('.faq-q').addEventListener('click', () => {
+      item.classList.toggle('open');
+    });
+  });
+
+  // 侧边栏激活态（滚动监听）
+  const sections = document.querySelectorAll('.tut-section');
+  const sideItems = document.querySelectorAll('.side-item');
+  function updateActive() {
+    let current = sections[0].id;
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 100) current = s.id;
+    });
+    sideItems.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  }
+  window.addEventListener('scroll', updateActive);
+  updateActive();
+
+  // 进度持久化
+  const checks = document.querySelectorAll('.check-row input[type=checkbox]');
+  const progFill = document.getElementById('progFill');
+  const progText = document.getElementById('progText');
+  const STORAGE_KEY = 'talent_tutorial_progress';
+
+  function loadProgress() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      checks.forEach(c => { if (saved[c.id]) c.checked = true; });
+    } catch (e) {}
+    updateProgress();
+  }
+  function updateProgress() {
+    const done = Array.from(checks).filter(c => c.checked).length;
+    const pct = checks.length ? Math.round(done / checks.length * 100) : 0;
+    progFill.style.width = pct + '%';
+    progText.textContent = pct + '%';
+  }
+  checks.forEach(c => {
+    c.addEventListener('change', () => {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      saved[c.id] = c.checked;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+      updateProgress();
+    });
+  });
+  document.getElementById('resetProg').addEventListener('click', () => {
+    if (confirm('确定要重置学习进度吗？')) {
+      checks.forEach(c => c.checked = false);
+      localStorage.removeItem(STORAGE_KEY);
+      updateProgress();
+    }
+  });
+  loadProgress();
+</script>
+
+</body>
+</html>

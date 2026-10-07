@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/png" href="favicon.png">
+<title>Talent · 全能辅助控制台</title>
+<meta name="description" content="Talent 控制台，面向球球大作战的全能辅助工具：内存修改、AI 锁球、TCP 追踪、ADB 美化、自动合球，一站式解决方案。">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #1a0f13;
+    --bg-2: #24161c;
+    --panel: rgba(58,28,36,.55);
+    --panel-solid: #3a1c24;
+    --panel-soft: rgba(80,38,50,.45);
+    --border: rgba(255,120,140,.14);
+    --border-strong: rgba(255,120,140,.28);
+    --text: #f4ecee;
+    --text-dim: #c9aeb4;
+    --text-mute: #8d6a72;
+    --accent: #ff5a6e;
+    --accent-2: #ff8a5c;
+    --accent-soft: rgba(255,90,110,.18);
+    --ok: #4ade80;
+    --radius: 18px;
+    --radius-sm: 12px;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: "Segoe UI", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+    background:
+      radial-gradient(1200px 700px at 15% -10%, #4a1f2e 0%, var(--bg) 55%) fixed,
+      var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.6;
+    overflow-x: hidden;
+    position: relative;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(500px 500px at 85% 15%, rgba(255,138,92,.10), transparent 60%),
+      radial-gradient(450px 450px at 30% 85%, rgba(255,90,110,.08), transparent 60%);
+  }
+  body > * { position: relative; z-index: 1; }
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,120,140,.25); border-radius: 5px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,120,140,.4); }
+  ::selection { background: var(--accent); color: #fff; }
+
+  a { color: inherit; text-decoration: none; }
+
+  .container { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+
+  /* ===== 导航栏 ===== */
+  .navbar {
+    position: sticky; top: 0; z-index: 100;
+    backdrop-filter: blur(18px);
+    background: rgba(26,15,19,.75);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner {
+    height: 68px;
+    display: flex; align-items: center; gap: 18px;
+  }
+  .logo {
+    display: flex; align-items: center; gap: 12px;
+    font-weight: 800; font-size: 20px;
+  }
+  .logo-mark {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 20px;
+    box-shadow: 0 4px 14px rgba(255,90,110,.4);
+  }
+  .logo span { color: var(--accent); }
+  .nav-links { display: flex; gap: 28px; margin-left: 36px; }
+  .nav-links a {
+    color: var(--text-dim); font-size: 14.5px; font-weight: 500;
+    transition: color .15s;
+  }
+  .nav-links a:hover { color: var(--text); }
+  .nav-actions { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+
+  /* ===== 按钮 ===== */
+  .btn {
+    height: 42px; padding: 0 22px;
+    border-radius: 11px; border: 1px solid var(--border);
+    background: var(--panel-soft); color: var(--text);
+    font-size: 14.5px; font-weight: 600; cursor: pointer;
+    transition: .18s; display: inline-flex; align-items: center; gap: 8px;
+    white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    border: none; color: #fff;
+    box-shadow: 0 6px 18px rgba(255,90,110,.35);
+  }
+  .btn.primary:hover { filter: brightness(1.12); color: #fff; transform: translateY(-1px); }
+  .btn.lg { height: 52px; padding: 0 30px; font-size: 16px; border-radius: 14px; }
+  .btn.ghost { background: transparent; border-color: var(--border-strong); }
+  .btn.ghost:hover { background: var(--panel-soft); }
+
+  /* ===== Hero ===== */
+  .hero {
+    padding: 90px 0 70px;
+    text-align: center;
+  }
+  .hero .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,.08);
+    border: 1px solid var(--border-strong);
+    color: var(--text-dim);
+    padding: 7px 16px; border-radius: 20px;
+    font-size: 13px; margin-bottom: 26px;
+  }
+  .hero .badge::before {
+    content: ""; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--ok); box-shadow: 0 0 8px var(--ok);
+  }
+  .hero h1 {
+    font-size: 54px; font-weight: 800; line-height: 1.15;
+    margin-bottom: 22px;
+  }
+  .hero h1 .grad {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero p {
+    font-size: 17px; color: var(--text-dim);
+    max-width: 640px; margin: 0 auto 36px;
+  }
+  .hero-actions {
+    display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+    margin-bottom: 48px;
+  }
+  .hero-stats {
+    display: flex; gap: 48px; justify-content: center; flex-wrap: wrap;
+    padding-top: 30px;
+    border-top: 1px solid var(--border);
+    max-width: 720px; margin: 0 auto;
+  }
+  .stat .num {
+    font-size: 30px; font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .stat .label { font-size: 13px; color: var(--text-mute); margin-top: 2px; }
+
+  /* ===== 区块通用 ===== */
+  section { padding: 80px 0; }
+  .section-head { text-align: center; margin-bottom: 56px; }
+  .section-head .tag {
+    display: inline-block;
+    color: var(--accent); font-size: 13px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .section-head h2 {
+    font-size: 38px; font-weight: 800; margin-bottom: 14px;
+  }
+  .section-head p {
+    color: var(--text-dim); font-size: 16px; max-width: 600px; margin: 0 auto;
+  }
+
+  /* ===== 功能卡片 ===== */
+  .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 22px; }
+  .feature-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    backdrop-filter: blur(16px);
+    transition: .2s;
+    position: relative; overflow: hidden;
+  }
+  .feature-card::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.1), transparent);
+  }
+  .feature-card:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-4px);
+    box-shadow: 0 18px 40px rgba(0,0,0,.3);
+  }
+  .feature-icon {
+    width: 54px; height: 54px; border-radius: 15px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; margin-bottom: 18px;
+    background: linear-gradient(135deg, var(--accent-soft), rgba(255,138,92,.12));
+    border: 1px solid var(--border);
+  }
+  .feature-card h3 { font-size: 19px; font-weight: 700; margin-bottom: 10px; }
+  .feature-card p { color: var(--text-dim); font-size: 14px; line-height: 1.7; }
+  .feature-card .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 16px; }
+  .feature-card .tags span {
+    font-size: 11.5px; padding: 3px 10px; border-radius: 6px;
+    background: var(--panel-solid); color: var(--text-mute);
+    border: 1px solid var(--border);
+  }
+
+  /* ===== 控制台预览 ===== */
+  .preview-wrap {
+    background: var(--panel);
+    border: 1px solid var(--border-strong);
+    border-radius: 22px;
+    padding: 14px;
+    backdrop-filter: blur(16px);
+    box-shadow: 0 30px 70px rgba(0,0,0,.45);
+  }
+  .preview-bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px 14px;
+  }
+  .preview-bar .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .preview-bar .dot.r { background: #ff5f57; }
+  .preview-bar .dot.y { background: #febc2e; }
+  .preview-bar .dot.g { background: #28c840; }
+  .preview-bar .title {
+    margin-left: 14px; color: var(--text-mute); font-size: 13px;
+  }
+  .preview-body {
+    border-radius: 14px; overflow: hidden;
+    border: 1px solid var(--border);
+    aspect-ratio: 16 / 9;
+    background: var(--bg-2);
+  }
+  .preview-body iframe {
+    width: 100%; height: 100%; border: 0; display: block;
+  }
+
+  /* ===== 购买区 ===== */
+  .buy-section {
+    text-align: center;
+    background: linear-gradient(120deg, rgba(74,26,38,.5), rgba(192,57,43,.3));
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .buy-card {
+    max-width: 640px; margin: 0 auto;
+    background: var(--panel);
+    border: 1px solid var(--border-strong);
+    border-radius: 24px;
+    padding: 48px 40px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 24px 60px rgba(0,0,0,.4);
+  }
+  .buy-card .price-big {
+    font-size: 56px; font-weight: 800; line-height: 1;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 16px 0 8px;
+  }
+  .buy-card .price-note { color: var(--text-mute); font-size: 13px; margin-bottom: 28px; }
+  .buy-card .perks {
+    text-align: left; margin: 0 auto 32px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px;
+    max-width: 460px;
+  }
+  .buy-card .perks li {
+    list-style: none; color: var(--text-dim); font-size: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .buy-card .perks li::before {
+    content: "✓"; color: var(--ok); font-weight: 700;
+  }
+  .buy-card .btn.lg { width: 100%; justify-content: center; height: 56px; font-size: 17px; }
+  .buy-card .secure {
+    margin-top: 18px; color: var(--text-mute); font-size: 12.5px;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+
+  /* ===== 价格表 ===== */
+  .price-group { margin-bottom: 40px; }
+  .price-group-title {
+    text-align: left; font-size: 16px; font-weight: 700;
+    color: var(--text); margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .price-group-title::before {
+    content: ""; width: 4px; height: 16px; border-radius: 2px;
+    background: linear-gradient(180deg, var(--accent), var(--accent-2));
+  }
+  .price-group-title .count {
+    font-size: 12px; font-weight: 500; color: var(--text-mute);
+    background: var(--panel-solid); padding: 2px 8px; border-radius: 6px;
+  }
+  .price-grid {
+    display: grid; gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+  .price-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px 20px;
+    text-align: left;
+    backdrop-filter: blur(16px);
+    transition: .18s;
+    position: relative; overflow: hidden;
+  }
+  .price-card:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(0,0,0,.3);
+  }
+  .price-card.highlight {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent), 0 12px 30px rgba(255,90,110,.2);
+  }
+  .price-card .pname { font-size: 16px; font-weight: 700; margin-bottom: 10px; }
+  .price-card .pprice {
+    font-size: 30px; font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1; margin-bottom: 6px;
+  }
+  .price-card .pprice .unit { font-size: 15px; font-weight: 600; }
+  .price-card .pstock {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12px; color: var(--ok); font-weight: 600;
+    background: rgba(74,222,128,.1);
+    padding: 3px 10px; border-radius: 6px;
+    margin-bottom: 16px;
+  }
+  .price-card .pstock::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--ok);
+  }
+  .price-card .pnote {
+    font-size: 12px; color: var(--accent-2); font-weight: 600;
+    margin-bottom: 16px;
+  }
+  .price-card .pbtn {
+    width: 100%; height: 38px;
+    border-radius: 10px; border: none;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: .15s;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .price-card .pbtn:hover { filter: brightness(1.12); }
+  .price-card .badge-hot {
+    position: absolute; top: 12px; right: 12px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff; font-size: 10px; font-weight: 700;
+    padding: 3px 8px; border-radius: 6px;
+  }
+
+  /* ===== 页脚 ===== */
+  footer {
+    padding: 40px 0;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    color: var(--text-mute); font-size: 13px;
+  }
+  footer .f-logo {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-weight: 700; color: var(--text); margin-bottom: 10px;
+  }
+  footer .f-links { display: flex; gap: 24px; justify-content: center; margin: 14px 0; flex-wrap: wrap; }
+  footer .f-links a:hover { color: var(--accent); }
+
+  /* 浮动购卡条（移动端常驻） */
+  .float-buy {
+    position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+    z-index: 90;
+    display: none;
+  }
+  .float-buy .btn { box-shadow: 0 10px 30px rgba(255,90,110,.5); }
+
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .hero h1 { font-size: 36px; }
+    .section-head h2 { font-size: 28px; }
+    .hero-stats { gap: 24px; }
+    .buy-card .perks { grid-template-columns: 1fr; }
+    .float-buy { display: block; }
+    section { padding: 60px 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 导航 -->
+<nav class="navbar">
+  <div class="container nav-inner">
+    <a href="#top" class="logo">
+      <div class="logo-mark">T</div>
+      <div>Talent<span>.</span></div>
+    </a>
+    <div class="nav-links">
+      <a href="#features">核心功能</a>
+      <a href="#preview">控制台预览</a>
+      <a href="#why">为什么选择</a>
+      <a href="#buy">购买授权</a>
+      <a href="tutorial.html">使用教程</a>
+    </div>
+    <div class="nav-actions">
+      <a href="Talent_v1.exe" download="Talent v1.exe" class="btn primary">点击下载</a>
+      <a href="https://kw.ovim.cn/shop/Talent" target="_blank" rel="noopener" class="btn primary">立即购卡</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="hero" id="top">
+  <div class="container">
+    <div class="badge">v1 已上线 · 服务运行中</div>
+    <h1>Talent<br><span class="grad">全能辅助控制台</span></h1>
+    <p>Talent 是一款面向球球大作战的一站式辅助工具，整合内存修改、AI 锁球、TCP 追踪、ADB 美化与自动合球五大模块，开箱即用，稳定高效。</p>
+    <div class="hero-actions">
+      <a href="Talent_v1.exe" download="Talent v1.exe" class="btn primary lg">点击下载</a>
+      <a href="https://kw.ovim.cn/shop/Talent" target="_blank" rel="noopener" class="btn primary lg">立即购卡</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><div class="num">5+</div><div class="label">核心功能模块</div></div>
+      <div class="stat"><div class="num">100%</div><div class="label">过检测成功率</div></div>
+    </div>
+  </div>
+</header>
+
+<!-- 功能 -->
+<section id="features">
+  <div class="container">
+    <div class="section-head">
+      <div class="tag">FEATURES</div>
+      <h2>五大核心模块</h2>
+      <p>一个控制台，覆盖球球大作战所有常用辅助需求，告别多开与繁琐配置。</p>
+    </div>
+    <div class="features">
+      <div class="feature-card">
+        <div class="feature-icon">🛡️</div>
+        <h3>过检测 & 保护</h3>
+        <p>内置反调试与过检测机制，ELF 注入方式稳定运行，稳定不弹窗不封号，保障账号安全。</p>
+        <div class="tags"><span>反调试</span><span>ELF注入</span><span>过检测</span><span>不封号</span></div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚙️</div>
+        <h3>内存功能</h3>
+        <p>实时读写游戏内存，自由调整视野范围、摇杆参数、球体粘合、全局加速、名字大小等核心参数，支持双连点快捷操作。</p>
+        <div class="tags"><span>全图视野</span><span>滚轮改视野</span><span>21亿摇杆</span><span>智能去皮</span></div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <h3>AI 功能</h3>
+        <p>基于包围盒预测与排序算法，自动获取排名并锁定目标球，支持普通追踪、三角追踪、锁球自动分身等多种策略。</p>
+        <div class="tags"><span>包围盒预测</span><span>取排名</span><span>锁球</span><span>三角追踪</span></div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📡</div>
+        <h3>TCP 追踪</h3>
+        <p>监控并解析游戏网络流量，实现大炮、四分炮、倒推、溅射等高级指令，支持双端协同与远程受控操作。</p>
+        <div class="tags"><span>大炮</span><span>四分炮</span><span>倒推</span><span>TCP溅射</span></div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎨</div>
+        <h3>ADB 美化</h3>
+        <p>通过 ADB 调试桥替换游戏内资源，自定义箭头、刺球、孢子、关键词、音效与造型，打造专属游戏界面。</p>
+        <div class="tags"><span>去商城皮</span><span>关键词替换</span><span>箭头皮肤</span><span>音效替换</span></div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎯</div>
+        <h3>自动合球</h3>
+        <p>配置合球延迟、角度与幅度参数，支持三角、原地、四分侧合、半旋、旋转、蛇手等多种合球方式，一键触发。</p>
+        <div class="tags"><span>三角合球</span><span>原地合球</span><span>四分侧合</span><span>蛇手</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 控制台预览 -->
+<section id="preview" style="background:rgba(20,10,14,.4);">
+  <div class="container">
+    <div class="section-head">
+      <div class="tag">CONSOLE</div>
+      <h2>控制台预览</h2>
+      <p>玻璃拟态深色界面，模块化分区清晰，所有参数一目了然，所见即所得。</p>
+    </div>
+    <div class="preview-wrap">
+      <div class="preview-bar">
+        <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+        <div class="title">Talent Console · v1</div>
+      </div>
+            <div class="preview-body" style="padding:0;background:#0d0a0d;">
+        <img src="console_preview.png" alt="Talent 控制台预览" style="width:100%;height:100%;object-fit:cover;display:block;">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 为什么选择 -->
+<section id="why">
+  <div class="container">
+    <div class="section-head">
+      <div class="tag">WHY TALENT</div>
+      <h2>为什么选择 Talent</h2>
+      <p>多年技术沉淀，只为给你最稳定、最全面的球球辅助体验。</p>
+    </div>
+    <div class="features">
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>极速响应</h3>
+        <p>内存直读直写，毫秒级参数生效；AI 预测算法经大量实战调优，锁球精准不卡顿。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>安全稳定</h3>
+        <p>ELF 注入 + 反调试保护，过检测持续更新；卡密验证机制保障授权不被盗用。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎛️</div>
+        <h3>高度可配置</h3>
+        <p>每个参数均可自由调节，支持预设方案与自定义延迟，满足不同操作习惯。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌐</div>
+        <h3>双端协同</h3>
+        <p>TCP 中继服务器支持多端协同，远程受控、大炮指令跨设备触发，团战利器。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎨</div>
+        <h3>资源美化</h3>
+        <p>内置丰富美化资源库，箭头、刺球、孢子、音效一键替换，打造个性化界面。</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💬</div>
+        <h3>持续更新</h3>
+        <p>跟随游戏版本持续更新偏移与特征码，官方公告及时推送，遇到问题快速响应。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 购买区 -->
+<section id="buy" class="buy-section">
+  <div class="container">
+    <div class="section-head">
+      <div class="tag">GET STARTED</div>
+      <h2>购买授权，立即体验</h2>
+      <p>一次购买，长期使用，享受全部功能与持续更新。</p>
+    </div>
+
+    <!-- 价格表 -->
+    <div class="price-group">
+      <div class="price-group-title">Talent过检测一体 <span class="count">共4种商品</span></div>
+      <div class="price-grid">
+        <div class="price-card">
+          <div class="pname">天卡</div>
+          <div class="pprice"><span class="unit">¥</span>6</div>
+          <div class="pstock">库存充足</div>
+          <a href="https://kw.ovim.cn/shop/Talent" target="_blank" rel="noopener" class="pbtn">立即购买</a>
+        </div>
+        <div class="price-card">
+          <div class="pname">周卡</div>
+          <div class="pprice"><span class="unit">¥</span>28</div>
+          <div class="pstock">库存充足</div>
+          <a href="https://kw.ovim.cn/shop/Talent" target="_blank" rel="noopener" class="pbtn">立即购买</a>
+        </div>
+        <div class="price-card">
+          <div class="pname">月卡</div>
+          <div class="pprice"><span class="unit">¥</span>66</div>
+          <div class="pstock">库存充足</div>
+          <a href="https://kw.ovim.cn/shop/Talent" target="_blank" rel="noopener" class="pbtn">立即购买</a>
+        </div>
+        <div class="price-card highlight">
+          <div class="badge-hot">推荐</div>
+          <div class="pname">永久卡</div>
+          <div class="pprice"><span class="unit">¥</span>168</div>
+          <div class="pstock">库存充足</div>
+          <a href="https://kw.ovim.cn/shop/Talent" target="_blank" rel="noopener" class="pbtn">立即购买</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="price-group">
+      <div class="price-group-title">Talent盲盒卡 <span class="count">共1种商品</span></div>
+      <div class="price-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+        <div class="price-card">
+          <div class="pname">视你好运</div>
+          <div class="pprice"><span class="unit">¥</span>10</div>
+          <div class="pstock">库存充足</div>
+          <div class="pnote">保底两张天卡</div>
+          <a href="https://kw.ovim.cn/shop/Talent" target="_blank" rel="noopener" class="pbtn">立即购买</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="buy-card">
+      <div style="color:var(--text-dim);font-size:14px;">Talent 全功能授权</div>
+      <div class="price-big">限时优惠</div>
+      <div class="price-note">前往购卡页面查看最新套餐与价格</div>
+      <ul class="perks">
+        <li>全部功能模块解锁</li>
+        <li>内存修改 & AI 锁球</li>
+        <li>TCP 追踪 & 双端协同</li>
+        <li>ADB 美化资源库</li>
+        <li>自动合球全种类</li>
+        <li>过检测 & 反调试</li>
+        <li>持续版本更新</li>
+        <li>官方技术支持</li>
+      </ul>
+      <a href="https://kw.ovim.cn/shop/Talent" target="_blank" rel="noopener" class="btn primary lg">
+        🛒 前往购卡
+      </a>
+      <div class="secure">🔒 安全支付 · 卡密即时发放 · 支持多种套餐</div>
+    </div>
+  </div>
+</section>
+
+<!-- 页脚 -->
+<footer>
+  <div class="container">
+    <div class="f-logo">
+      <div class="logo-mark" style="width:32px;height:32px;font-size:16px;">T</div>
+      Talent
+    </div>
+    <div class="f-links">
+      <a href="#features">核心功能</a>
+      <a href="#preview">控制台预览</a>
+      <a href="#why">为什么选择</a>
+      <a href="https://kw.ovim.cn/shop/Talent" target="_blank" rel="noopener">购买授权</a>
+      <a href="tutorial.html">使用教程</a>
+    </div>
+    <div>Talent Console · v1 · Build 20261006</div>
+    <div style="margin-top:6px;">© 2026 Talent. 仅供学习交流使用。</div>
+  </div>
+</footer>
+
+<!-- 移动端浮动购卡 -->
+<div class="float-buy">
+  <a href="https://kw.ovim.cn/shop/Talent" target="_blank" rel="noopener" class="btn primary lg">立即购卡</a>
+</div>
+
+<script>
+  // 平滑滚动 + 导航高亮
+  const navLinks = document.querySelectorAll('.nav-links a');
+  navLinks.forEach(a => {
+    a.addEventListener('click', (e) => {
+      const href = a.getAttribute('href');
+      if (href.startsWith('#')) {
+        e.preventDefault();
+        const target = document.querySelector(href);
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  });
+
+  // 滚动时导航栏阴影
+  const navbar = document.querySelector('.navbar');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 10) {
+      navbar.style.boxShadow = '0 8px 30px rgba(0,0,0,.3)';
+    } else {
+      navbar.style.boxShadow = 'none';
+    }
+  });
+</script>
+
+</body>
+</html>
